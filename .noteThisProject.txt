@@ -1,0 +1,7 @@
+1. Este proyecto controla el tiempo de inactividad con JavaScript para ello toma el tiempo del lifetime y le resta un tiempo para calcular cuanto le queda de inactividad al usuario. Pregunta si extiende el tiempo o no
+
+2. Maneja excepciones se prueba en el crud de Usuarios al crear un registro si la BD retorna error(no se esta validando nada solo para efectos del uso de excepciones) llama la exception QueryExceptions, en otras excepciones llama la que esta en el app.php de bootstrap (por ser laravel 11). De esta manera no revienta el programa ya que llama la vista en exceptions\message
+
+3. Habia un problema al llamar el cierre de sesion en el onclick puse ese nombre porque asi fue que funciono. Ni idea porque
+
+Las claves son 12345678 o 123 o 123456
