@@ -16,6 +16,7 @@ class QueryExceptions extends Exception
 
     public function render (Request $request) {
 
+        Log::info("QUERY EXCEPTIONS");
         if ($this->code == 23000)
             return view('exceptions.message');
     }

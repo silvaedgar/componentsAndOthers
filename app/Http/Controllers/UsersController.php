@@ -68,12 +68,9 @@ class UsersController extends Controller
      */
     public function edit(string $id)
     {
-        try {
             $route = route("users.update",$id);
             $user = User::findOrFail($id);
-        } catch (\Throwable $th) {
-            throw new QueryExceptions($th->getMessage(), $th->getCode());
-        }
+
         return view('users.form',compact('route','user'));
     }
 
@@ -85,7 +82,9 @@ class UsersController extends Controller
         $message = 'Registro Actualizado con exito';
 
         $data = $this->fieldsFiles($request->input());
-        $data['password'] = bcrypt($data['password']);
+        if ($data['password'] != null)  // para que revienta y vaya a la exception
+            $data['password'] = bcrypt($data['password']);
+
         $user = User::findOrFail($id);
         $user->update($data);
         $users = User::all();

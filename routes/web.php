@@ -3,6 +3,7 @@
 use App\Http\Controllers\auth\LoginController;
 use App\Http\Controllers\DataController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\JobController;
 use App\Http\Controllers\UsersController;
 use App\Http\Middleware\IsLoggedMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,8 @@ Route::get("/login", [LoginController::class, 'index'])->name('login');
 Route::post("/login", [LoginController::class, 'login'])->name('login');
 Route::get("/signup", [LoginController::class, 'register'])->name('signup');
 Route::post("/signup", [LoginController::class, 'signup'])->name('signup');
+
+Route::get("/procesar-job",[JobController::class, 'index'])->name('job');
 
 
 Route::middleware(IsLoggedMiddleware::class)->group(function() {

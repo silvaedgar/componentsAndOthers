@@ -24,6 +24,8 @@
     <a href="{{ route('home') }}" class="mx-3"> Home</a>
     <a href="{{ route('contact') }}"  class="me-3"> Contacto</a>
     <a href="{{ route('about-us') }}"  class="me-3"> Acerca de</a>
+    <a href="{{ route('job') }}"  class="me-3"> Ejemplo de Job o Cola</a>
+ 
     <a href="{{ route('signup') }}"  class="me-3"> Registrarse</a>
     <a href="{{ route('login') }}"  class="me-3"> Login</a>
 

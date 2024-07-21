@@ -18,7 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render( function (Throwable $e, Request $request) {
-            return view('exceptions.message');
+            $message = $e->getMessage();
+            return view('exceptions.message1');
         });
         //
     })->create();
