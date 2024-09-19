@@ -41,6 +41,8 @@
     {{-- <script src="{{asset('js')}}/my-menu.js"></script> --}}
     <script>
 
+        var timeWaitAnswerExtended = 10
+        var leadTimeForClosure = 30 // 30 segundos antes del cierre avisa la extension
         var timeIdle = 0
         var questionWas = false;
         var closeSession = false;
@@ -78,7 +80,6 @@
         window.addEventListener('DOMContentLoaded', resetTimeIdle(false));
 
         function resetTimeIdle(regenerarSession = false) {
-            console.log("entre al reset", regenerarSession ? "truw" : "false")
             timeIdle = 0;
             questionWas = false;
             if (regenerarSession) {
@@ -100,21 +101,28 @@
             }
         }
 
-        async function verifyExtendSession() {
-            const extendedSession = await confirm("Desea Extender la Sesion");
-            if (extendedSession) resetTimeIdle(true)
+        function verifyExtendSession() {
+            let startTime = new Date();
+            const extendedSession =  confirm("Desea Extender la Sesion");
+            let endTime = new Date();
+            let diffMS = (endTime - startTime) / 1000  // verifica que no se haya tardado en responder
+            timeIdle += diffMS // suma el tiempo de espera para la respuesta al tiempo de vencimiento de la sesion
+            if (extendedSession && diffMS < timeWaitAnswerExtended ) resetTimeIdle(true)
         }
 
         setInterval(() => {
             is_logged = "{{ auth()->check()  }}"
             timeIdle++;
-            if(timeIdle > (lifetime * 60 - 60) && !questionWas && is_logged) {
+            timeWait = lifetime * 60 - leadTimeForClosure
+            timeWaitClose = lifetime * 60
+
+            if(timeIdle > timeWait && !questionWas && is_logged != '') {
                 questionWas = true
                 verifyExtendSession();
             }
-            if (timeIdle > (lifetime * 60 -30) && is_logged) {
+            if (timeIdle > timeWaitClose && is_logged != '') {
                 closeFormSession(true)
-                resetTimeIdle(false)
+                resetTimeIdle()
             }
         }, 1000);
     </script>
