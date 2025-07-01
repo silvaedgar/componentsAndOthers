@@ -1,11 +1,10 @@
 <?php
 
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,9 +16,23 @@ return Application::configure(basePath: dirname(__DIR__))
        //
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render( function (Throwable $e, Request $request) {
+        $exceptions->render(function (Throwable $e, Request $request) {
+            info("Exception en App {$e->getCode()} {$e->getMessage()}", [$e]);
+
+            // 🔹 Si es ModelNotFoundException, devolver JSON antes de que Laravel lo convierta en NotFoundHttpException
+            if ($e instanceof Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+                info("ES: {$e->getCode()} {$e->getMessage()}");
+                return view('exceptions.message');
+
+                // return response()->json([
+                //     'message' => 'Registro no encontrado.',
+                //     'error' => 'No se pudo encontrar el recurso solicitado.'
+                // ], 404);
+            }
+
+
+            // 🔹 Para otras excepciones, usa la vista de error
             $message = $e->getMessage();
-            return view('exceptions.message1');
+            return view('exceptions.message1', compact('message'));
         });
-        //
     })->create();

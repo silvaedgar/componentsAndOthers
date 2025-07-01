@@ -3,22 +3,26 @@
 namespace App\Exceptions;
 
 use Exception;
-use Throwable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+
 
 class QueryExceptions extends Exception
 {
-    public function __construct($message = "Error de base de datos", $code=0, Throwable $previous = null)
+    private $description;
+    //public function __construct(Exception $exception,$message = "Accediendo a la aplicacion")
+    public function __construct(Exception $exception,$description = "Error de acceso a la aplicacion")
     {
-        parent::__construct($message,$code,$previous);
+
+        $this->description = $description;
+        parent::__construct($exception->getMessage(),$this->code);
+        //parent::__construct($exception,$message);
     }
 
     public function render (Request $request) {
-
-        Log::info("QUERY EXCEPTIONS");
-        if ($this->code == 23000)
-            return view('exceptions.message');
+        info("Exception en QueryExceptions: {$this->code} {$this->message} ");
+        $utils = new \App\Extensions\Utils();
+        $utils->makeLog("QueryExceptions ", $this->description, substr($this->message,0,200));
+//        return view('exceptions.message');
     }
     //
 }

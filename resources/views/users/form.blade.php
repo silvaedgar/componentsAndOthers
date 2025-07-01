@@ -22,11 +22,11 @@
 
     <div class="row mt-3">
         <label for="password" class="col-1 text-end">Password</label>
-        <input type="password" name="password" class="w-25 form-control" id="">
+        <input type="password" name="password" class="w-25 form-control" id="" required>
     </div>
 
     <div class="row mx-auto mt-3">
-        <button type="submit" class="w-25 btn btn-primary">Crear</button>
+        <button type="submit" class="w-25 btn btn-primary">Guardar</button>
         <a href="{{ route('users.index') }}" class="w-25 ms-3 btn btn-danger">Cancelar</a>
     </div>
 

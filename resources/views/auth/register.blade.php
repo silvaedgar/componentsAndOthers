@@ -48,7 +48,7 @@
                     </div>
                     <div class="mb-1">
                         <label for="password" class="form-label"> Confirma Password</label>
-                        <input type="password"  class="form-control" name="password1" required>
+                        <input type="password"  class="form-control" name="password_confirmation" required>
                     </div>
                     <div class="d-grid mt-3 mb-3">
                         <button type= "submit" class="btn btn-primary">Registrarme </button>

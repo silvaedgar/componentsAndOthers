@@ -20,7 +20,8 @@
 
 
     <!-- Styles -->
-    {{-- <link href="{{ asset('css') }}/styles.css" rel="stylesheet">
+    {{--
+    <link href="{{ asset('css') }}/styles.css" rel="stylesheet">
     <link href="{{ asset('css') }}/style-menu-responsive.css" rel="stylesheet"> --}}
     @yield('css')
 </head>
@@ -28,9 +29,9 @@
 <body style="background-color: {{ isset($bgBody) ? $bgBody: '#f0f0f0'}}">
     <div class="content">
         @auth
-            @include('layouts.navbar.navbar')
+        @include('layouts.navbar.navbar')
         @else
-            @include('layouts.navbar.not-logged')
+        @include('layouts.navbar.not-logged')
         @endauth
         @yield('content')
     </div>
@@ -40,7 +41,6 @@
     </script>
     {{-- <script src="{{asset('js')}}/my-menu.js"></script> --}}
     <script>
-
         var timeWaitAnswerExtended = 10
         var leadTimeForClosure = 30 // 30 segundos antes del cierre avisa la extension
         var timeIdle = 0
