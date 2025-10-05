@@ -2,11 +2,6 @@
 
 @section('content')
 
-        @if (isset($message))
-            <div class="alert alert-danger mt-2" role="alert">
-                {{ $message }}
-            </div>
-        @endif
 
 <a
     class="btn btn-primary mt-3"
@@ -14,6 +9,11 @@
     role="button"
     >Agregar Usuario</a
 >
+        @if (session('message') || isset($message))
+            <div class="alert alert-danger mt-2 inline-block" role="alert">
+                {{ session('message') }} {{ isset($message) ? $message : '' }}
+            </div>
+        @endif
 
 <div
     class="table-responsive"

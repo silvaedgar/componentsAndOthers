@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers\auth;
 
-use App\Exceptions\QueryExceptions;
 use App\Extensions\Utils;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UserRequest;
 use App\Models\User;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
     protected $utils;
-    PUBLIC $modulo = "Acceso al Sistema";
+    public  $modulo = "Acceso al Sistema";
     public function __construct(Utils $utils)
     {
          $this->utils = $utils;
@@ -23,19 +22,13 @@ class LoginController extends Controller
     //
     public function index()
     {
-        try {
-    //        $user = User::where('id',100)->firstOrFail();
-            $this->utils->makeLog($this->modulo, "Acceso al formulario de login");
-        } catch (\Exception $exception) {
-            throw new QueryExceptions($exception,"Error al formulario de login");
-        }
         return view('auth.login');
-
     }
 
     public function login(Request $request)
     {
-        $this->utils->makeLog($this->modulo, "Accedio al modulo de Login", $request->input());
+        $jsonInput = $this->utils->hideFieldLog($request,['password','_token']);
+        $this->utils->makeLog($this->modulo, "Accedio al modulo de Login", $jsonInput);
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $userId = auth()->user()->id;
             $isActiveSession = DB::table('sessions')->where('user_id', $userId)->first();
@@ -45,13 +38,13 @@ class LoginController extends Controller
                 session()->invalidate();
                 return redirect()->route('login')->with('is_active', true);
             }
-            $this->utils->makeLog($this->modulo, "Usuario accede al sistema", $request->input());
+            $this->utils->makeLog($this->modulo, "Usuario accede al sistema", $jsonInput);
             return redirect('home');
         }
-        $this->utils->makeLog($this->modulo, "Verificacion de credenciales no valida", $request->input());
+        $this->utils->makeLog($this->modulo, "Verificacion de credenciales no valida", $jsonInput, null,"Credenciales de Usuario no validas");
         return redirect()
-            ->route('login')
-            ->with('status', 'Datos de email y/o password invalidos');
+            ->back()->withInput()
+            ->with('status', 'Credenciales no registradas');
     }
 
 
@@ -61,44 +54,29 @@ class LoginController extends Controller
         return view('auth.register');
     }
 
-    public function signup(Request $request)
+    public function signup(UserRequest $request)
     {
         try {
-            //code...
-            $this->utils->makeLog("Registro de Usuario","Guardando datos de registro333",$request->input());
-            // falta probar en un form request usar el metodo failedvalidator para el log
-            $request->validate([
-                'name' => 'required|string|max:30',
-                'email' => 'required|string|email|unique:users',
-                'password' => 'required|string|min:8|confirmed',
-                'password_confirmation' => 'required',
-            ], [
-                'name.required' => 'El campo nombre es obligatorio.',
-                'name.max' => 'El nombre no puede tener más de :max caracteres.',
-                'email.required' => 'El campo correo electrónico es obligatorio.',
-                'email.email' => 'El correo electrónico debe ser una dirección válida.',
-                'email.unique' => 'El correo electrónico ya está registrado.',
-                'password.required' => 'El campo contraseña es obligatorio.',
-                'password.min' => 'La contraseña debe tener al menos :min caracteres.',
-                'password.confirmed' => 'Las contraseñas no coinciden.',
-                'password_confirmation.required' => 'El campo confirmar contraseña es obligatorio.',
-            ]);
+            $jsonInput = $this->utils->hideFieldLog($request,['password','_token','password_confirmation']);
+            $this->utils->makeLog("Registro de Usuario","Validando datos de registro",$jsonInput);
 
-            info("Usuario registrado: {$request->name}");
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => bcrypt($request->password),
+                'password' =>  Hash::make($request->password),
             ]);
-            info("Usuario registrado: {$user->name}");
-            $this->utils->makeLog("Registro de Usuario","Datos de registro almacenados con exito",$user);
+            if ($user) $title = "Datos de registro almacenados con exito";
+            else $title = "Error al guardar datos de registro";
+
+            $this->utils->makeLog("Registro de Usuario",$title,$user, null, $jsonInput);
+
+            if (!$user) return redirect()->route('signup')->with('status', "Error al guardar datos de usuario");
 
             return redirect()->route('login')->with('status', "Registro de Usuario exitoso. Ingrese Datos para entrar");
         } catch (\Throwable $th) {
-            info("Error al guardar datos de usuario: {$th->getMessage()}");
-            $message = "Error al guardar datos del usuario. {$th->getMessage()}. Linea: {$th->getLine()} Error: {$th->getCode()}";
-            $this->utils->makeLog("Registro de Usuario",$message, $request->input());
-            return redirect()->route('signup')->with('status',"Error guardando datos de usuario: {$th->getMessage()} ");
+            $message = "{$th->getMessage()} al registrar datos del usuario: $jsonInput->email.  Linea: {$th->getLine()} Error: {$th->getCode()}";
+            $this->utils->makeLog("Registro de Usuario",$message, $jsonInput,null, $message);
+            return redirect()->route('signup')->withInput()->with('status',"Error guardando datos de usuario: {$th->getMessage()} ");
             //throw $th;
         }
     }

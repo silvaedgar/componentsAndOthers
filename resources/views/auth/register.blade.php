@@ -11,6 +11,7 @@
                 </div>
             </div>
         @endif
+
         <div class="row mt-1">
             <div>
                 <div class="text-center mt-3">
@@ -34,7 +35,7 @@
                         <input type="email" class="form-control" name="email" value = "{{ old('email')}}"
                             placeholder = "Correo Electrónico" required>
                         @error('email')
-                            <span class = "text-warning"> {{ $message }} </span>
+                            <span class = "text-danger text-sm"> {{ $message }} </span>
                         @enderror
 
                     </div>
@@ -48,7 +49,7 @@
                     </div>
                     <div class="mb-1">
                         <label for="password" class="form-label"> Confirma Password</label>
-                        <input type="password"  class="form-control" name="password_confirmation" required>
+                        <input type="password"  class="form-control" name="password_confirmation" value="{{ old('password_confirmation') }}" required>
                     </div>
                     <div class="d-grid mt-3 mb-3">
                         <button type= "submit" class="btn btn-primary">Registrarme </button>

@@ -21,22 +21,23 @@ class HomeController extends Controller
     public function home() {
 
 
-        $this->utils->makeLog($this->modulo,"Acceso al home de la pagina principal");
-        if(auth()->check())
+        if(auth()->check()) {
+            $this->utils->makeLog($this->modulo,"Accedió al home de la pagina principal");
             return view('home');
+        }
 
         return view('menu-not-logged.home');
     }
 
     public function contact()
     {
-        $this->utils->makeLog($this->modulo,"Acceso a la opción contactos de la pagina principal");
+        //$this->utils->makeLog($this->modulo,"Acceso a la opción contactos de la pagina principal");
         return view('menu-not-logged.contact');
     }
 
     public function aboutUs()
     {
-        $this->utils->makeLog($this->modulo,"Acceso a la opción 'Acerca de' de la pagina principal");
+        //$this->utils->makeLog($this->modulo,"Acceso a la opción 'Acerca de' de la pagina principal");
         return view('menu-not-logged.about-us');
     }
 
