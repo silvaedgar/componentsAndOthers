@@ -45,7 +45,7 @@ class CryptoController extends Controller
             $salt = base64_decode($dataInputArray['salt']);
             $key = hash_pbkdf2('sha256', $token, $salt, 1000, 32, true);
             $iv = base64_decode($dataInputArray['iv']);
-            // info("Token: $token");
+
             // info("Salt: $salt " . bin2hex($salt));
             // info("Key: $key");
             // info("IV: $iv");

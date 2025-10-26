@@ -51,5 +51,18 @@
         }
     }, 1000);
 
+    alert("EDGAR")
+    var derivedKey = null;
+    var urlKey = "{{ get.encrypt.key }}";
+    fetch(urlKey)
+        .then(
+            res => res.json())
+        .then(data => {
+            derivedKey = data.keys
+            console.log(derivedKey)
+            sessionStorage.setItem("tokenKey", derivedKey.token.toString());
+            delete derivedKey.token
+        });
+
 
 </script>

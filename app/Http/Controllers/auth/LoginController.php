@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\CryptoController;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -52,7 +53,7 @@ class LoginController extends Controller
                     session()->invalidate();
                     return redirect()->route('login')->with('is_active', true);
                 }
-                $this->utils->makeLog($this->modulo, $this->mensajes['accesoLogin'], $jsonInput);
+                $this->utils->makeLog($this->modulo, $this->mensajes['accesoSistema'], $jsonInput);
                 return redirect('home');
             }
             //code...
@@ -87,8 +88,7 @@ class LoginController extends Controller
                 'email' => $request->email,
                 'password' =>  Hash::make($request->password),
             ]);
-            if ($user) $title = "Datos de registro almacenados con exito";
-            else $title = "Error al guardar datos de registro";
+            $title = (($user) ? "Datos de registro almacenados con exito" :  "Error al guardar datos de registro");
 
             $this->utils->makeLog("Registro de Usuario", $title, $user, null, $jsonInput);
 

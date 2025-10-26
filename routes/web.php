@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\auth\LoginController;
 use App\Http\Controllers\DataController;
+use App\Http\Controllers\CryptoController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\UsersController;
@@ -15,9 +16,13 @@ Route::get("/about-us", [HomeController::class, 'aboutUs'])->name('about-us');
 Route::get("/login", [LoginController::class, 'index'])->name('login');
 Route::post("/login", [LoginController::class, 'login'])->name('login');
 Route::get("/signup", [LoginController::class, 'register'])->name('signup');
-Route::post("/signup", [LoginController::class, 'signup'])->name('signup');
+
 
 Route::get("/procesar-job",[JobController::class, 'index'])->name('job');
+
+Route::post("/signup", [LoginController::class, 'signup'])->name('signup');
+
+Route::get('crypt', [CryptoController::class, 'generateKeyDerivedToFront'])->name('get.encrypt.key');
 
 
 Route::middleware(IsLoggedMiddleware::class)->group(function() {
@@ -26,4 +31,5 @@ Route::middleware(IsLoggedMiddleware::class)->group(function() {
     Route::get("/extendedSession", [LoginController::class, 'extendedSession'])->name('regenerar-sesion');
     Route::resource('users',UsersController::class);
 });
+
 

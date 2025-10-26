@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@section('css')
+    @vite('public/functions.js')
+@endsection
+
 @section('content')
 
     <div class="container w-25 mt-5 rounded shadow ">
@@ -14,7 +18,7 @@
             <div class="text-center mt-3">
                 <h4> Inicio de Sesion</h4>
             </div>
-            <form method="POST" action = "{{ route('login')}}">
+            <form method="POST" action = "{{ route('login')}}" id="form">
                 @csrf
                 <div class="mb-2">
                     <label for="email" class="form-label" > Correo Electronico</label>
@@ -43,6 +47,7 @@
 
         </div>
     </div>
+
 @endsection
 
 @push('js')
@@ -70,6 +75,7 @@
         let encryptedForm = generateFormEncrypt(data,formActionURL,csrfToken)
         encryptedForm.submit();
     })
+
 
 </script>
 

@@ -56,9 +56,10 @@ class Utils
         ];
     }
 
-    public function hideFieldLog(Request $request, $fields = []) {
+    public function hideFieldLog($request, $fields = []) {
         $jsonInput = new stdClass();
-        foreach ($request->all() as $key => $value)
+
+        foreach ($request as $key => $value)
             $jsonInput->$key = (!in_array($key, $fields) ? $value : "********");
         return $jsonInput;
     }
