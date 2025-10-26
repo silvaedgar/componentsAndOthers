@@ -14,11 +14,12 @@ class UsersController extends Controller
 {
     use ServicesTrait;
 
-    protected $utils;
-    public $modulo = "Modulo de Usuarios";
+    private $utils;
+    private $modulo;
     public function __construct(Utils $utils)
     {
         $this->utils = $utils;
+        $this->modulo = config('moduledescription.UsersController');
     }
     /**
      * Display a listing of the resource.
@@ -29,8 +30,6 @@ class UsersController extends Controller
         $this->utils->makeLog($this->modulo,"Accedió a la lista de usuarios");
 
         return view('users.index', compact('users'));
-
-        //
     }
 
     /**
@@ -41,7 +40,6 @@ class UsersController extends Controller
         $this->utils->makeLog($this->modulo,"Accedió al Formulario de Crear Usuarios");
         $route = route("users.store");
         return view('users.form',compact('route'));
-        //
     }
 
     /**
@@ -50,33 +48,21 @@ class UsersController extends Controller
     public function store(UserRequest $request)
     {
         try {
-            $jsonInput = $this->utils->hideFieldLog($request,['password']);
-            $this->utils->makeLog($this->modulo,"Guardando datos de usuario",$jsonInput);
-            $message = 'Registro Creado con exito';
+            $message = "Usuario $request->name creado con exito";
             $data = $this->fieldsFiles($request->input());  // ojo imagino que es  para cuandose use un token de clave y no forma parte del user ya que graba data directamente
             $data['password'] = bcrypt($data['password']);
-            //$password = bcrypt($request->password);
-            User::create($data);
-            $this->utils->makeLog($this->modulo,"Usuario creado con exito",$jsonInput);
+            $jsonInput = $this->utils->hideFieldLog($request,['password']);
+            $this->utils->makeLog($this->modulo,"Guardando datos de usuario",$jsonInput);
+            $userCreated = User::create($data);
+            $this->utils->makeLog($this->modulo,$message,$jsonInput,null, $userCreated);
             $users = User::all();
+            return view('users.index',compact('users','message'));
         } catch (\Throwable $th) {
             $message = "{$th->getMessage()} al grabar datos del usuario: $jsonInput->email.  Linea: {$th->getLine()} Error: {$th->getCode()}";
             $this->utils->makeLog($this->modulo,$message, $jsonInput,null, $message);
-
             // Y redirigir manualmente
-            return redirect()->back()
-                ->withInput();
+            return redirect()->back()->withInput();
         }
-        return view('users.index',compact('users','message'));
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-
     }
 
     /**
@@ -96,7 +82,6 @@ class UsersController extends Controller
             $this->utils->makeLog($this->modulo,"Error al acceder al formulario de editar usuario",$th->getMessage(), null, $message);
             return redirect()->route('users.index')->with('message', 'Error al acceder al formulario de editar usuario');
         }
-
     }
 
     /**
@@ -107,15 +92,15 @@ class UsersController extends Controller
         try {
 
             $jsonInput = $this->utils->hideFieldLog($request,['password']);
-            $this->utils->makeLog($this->modulo,"Actualizando datos de usuario",$jsonInput);
             $data = $this->fieldsFiles($request->input());
-            if ($data['password'] != null)  // para que revienta y vaya a la exception
-                $data['password'] = Hash::make($data['password']);
+            // if ($data['password'] != null)  // para que revienta y vaya a la exception
+            //     $data['password'] = Hash::make($data['password']);
 
             $user = User::findOrFail($id);
-            $message = "Registro de usuario {$data['name']} Actualizado con exito";
+            $message = "Registro de usuario {$data['name']} actualizado con exito";
+            $this->utils->makeLog($this->modulo,"Actualizando datos de usuario",$jsonInput);
             $user->update($data);
-            $this->utils->makeLog($this->modulo,"Usuario actualizado con exito",$user);
+            $this->utils->makeLog($this->modulo,$message,$jsonInput,$user);
             $users = User::all();
             return view('users.index',compact('users','message'));
         } catch (\Throwable $th) {

@@ -57,6 +57,20 @@
         }
 
     })
+
+    document.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formElement = event.target;
+        const formActionURL = formElement.action;
+        const formMethod = formElement.method.toUpperCase();
+        const csrfTokenInput = formElement.querySelector('input[name="_token"]');
+        const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
+        const data = serializeFormToArray("form");
+
+        let encryptedForm = generateFormEncrypt(data,formActionURL,csrfToken)
+        encryptedForm.submit();
+    })
+
 </script>
 
 @endpush
