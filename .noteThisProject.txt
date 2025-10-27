@@ -5,7 +5,7 @@
 3. Habia un problema al llamar el cierre de sesion en el onclick puse ese nombre porque asi fue que funciono. Ni idea porque
 
 4. El cierre automatico de sesion cree el middleware que esta alli en la carpeta de middelaware no lopude probar ya qu eno existe el kernel.php ni idea porque
-    iba a actualizar el laravel con composer global update laravel/installer pero no lo hice por el banco no fuera a joder las aplicaciones (20-04-25)
+    iba a actualizar el laravel con composer global update laravel/installer pero no lo hice por el banco no fuera a joder las aplicaciones (20-04-25) La version de laravel no utiuliza el kernesl.php
 
 5. Debo recordar que existe el metodo fieldsFiles en un trait de servicio que genera los campos de tabla solamente para grabar a partir de una variable(USERCONTROLLER)
 

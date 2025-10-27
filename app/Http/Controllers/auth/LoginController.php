@@ -39,7 +39,7 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         try {
-            $request = CryptoController::dataDecrypt($request->input('data'));
+            $request = CryptoController::receiveEncrypted($request);
             if ($request == null) throw new \Exception("Error Desencriptando");
             $jsonInput = $this->utils->hideFieldLog($request, ['password', '_token']);
             $this->utils->makeLog($this->modulo, $this->mensajes['accesoLogin'], $jsonInput);
@@ -56,15 +56,17 @@ class LoginController extends Controller
                 $this->utils->makeLog($this->modulo, $this->mensajes['accesoSistema'], $jsonInput);
                 return redirect('home');
             }
+            $messageLog = $this->mensajes['errorCredenciales'];
             //code...
         } catch (\Throwable $th) {
+            info($th->getMessage());
             $message = (isset($jsonInput) ? "al registrar datos del usuario: $jsonInput->email." : "");
             $jsonInput = (isset($jsonInput) ? $jsonInput :  json_encode($request,JSON_PRETTY_PRINT));
-            $message = "{$th->getMessage()} $message Linea: {$th->getLine()} Error: {$th->getCode()}";
+            $messageLog = "{$th->getMessage()} $message Linea: {$th->getLine()} Error: {$th->getCode()}";
             $messageError = "Error, no se pudo procesar los datos";
             $this->utils->makeLog($this->modulo,$message, $jsonInput,null, $message);
         }
-        $this->utils->makeLog($this->modulo, $this->mensajes['errorCredenciales'], $jsonInput, null, "Credenciales de Usuario no validas");
+        $this->utils->makeLog($this->modulo, $messageLog, $jsonInput, null, "Credenciales de Usuario no validas");
         return redirect()
             ->back()->withInput()
             ->with('status', $messageError);

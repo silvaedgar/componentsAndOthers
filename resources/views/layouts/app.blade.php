@@ -126,15 +126,15 @@
             }
         }, 1000);
 
-    var derivedKey = null;
+    var publicKey = null;
     var urlKey = "{{ route('get.encrypt.key') }}";
     fetch(urlKey)
         .then(
             res => res.json())
         .then(data => {
-            derivedKey = data.keys
-            sessionStorage.setItem("tokenKey", derivedKey.token.toString());
-            delete derivedKey.token
+            publicKey = data.publicKey
+            //sessionStorage.setItem("tokenKey", derivedKey.token.toString());
+            //delete derivedKey.token
         });
     </script>
     @stack('js')

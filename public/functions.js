@@ -24,7 +24,7 @@ export function serializeFormToArray(formId) {
 
 export function generateFormEncrypt(data, url, token) {
                 // Encriptar datos usando CryptoJS
-    let dataEncrypted = window.dataEncrypt(data)
+    let dataEncrypted = window.encryptDataSalt(data)
                 // Crear un nuevo formulario con los datos encriptados
     let encryptedForm = document.createElement('form');
     encryptedForm.method = 'POST';
@@ -44,7 +44,6 @@ export function generateFormEncrypt(data, url, token) {
     document.body.appendChild(encryptedForm);
     return encryptedForm
 }
-
 
 window.serializeFormToArray = serializeFormToArray;
 window.generateFormEncrypt = generateFormEncrypt

@@ -33,7 +33,8 @@ class CryptoController extends Controller
     }
 
 
-   public static function dataDecrypt($dataInput) {
+    public static function dataDecrypt($dataInput)
+    {
         try {
             //$namesExclude = ['fileSession'];
             $encrypt_method = 'AES-256-CBC';
@@ -65,7 +66,8 @@ class CryptoController extends Controller
         }
     }
 
-    public function generateKeyDerivedToFront() {
+    public function generateKeyDerivedToFront()
+    {
 
         $token  = Str::uuid()->toString();
         $salt = random_bytes(16); // 128 bits
@@ -88,5 +90,67 @@ class CryptoController extends Controller
         info('IV: ' .  bin2hex($iv) .  "  Length: "  . strlen($iv));   // debe ser 16
         info('Encrypted: ' . bin2hex($iv) .  ' length: ' . strlen($encrypted));
         return response()->json(['keys' => $keys]);
+    }
+
+    public function getCryptoSalt()
+    {
+
+        try {
+            //code...
+            $frontendPublicKey = file_get_contents(base_path(env('RSA_PUBLIC_PATH')));
+
+
+            return response()->json([
+                'publicKey' => $frontendPublicKey
+            ]);
+        } catch (\Throwable $th) {
+            info($th->getMessage());
+            return response()->json([
+                'publicKey' => "ERROR"
+            ]);
+
+            //throw $th;
+        }
+        // Clave pública del frontend (puede venir de config o base de datos)
+    }
+
+    public static function receiveEncrypted(Request $request)
+    {
+        try {
+            $privateKey = file_get_contents(base_path(env('RSA_PRIVATE_PATH')));
+            $data = json_decode($request->input('data'), true);
+
+            $encryptedKey = base64_decode($data['encryptedKey']);
+            $iv = base64_decode($data['iv']);
+            $encrypted = base64_decode($data['encrypted']);
+
+            // Descifrar la clave AES con la clave privada RSA
+            // openssl_private_decrypt($encryptedKey, $aesKey, $privateKey, OPENSSL_PKCS1_OAEP_PADDING);
+
+            $success = openssl_private_decrypt($encryptedKey, $aesKeyBase64, $privateKey, OPENSSL_PKCS1_PADDING);
+
+            if (!$success) {
+                throw new \Exception("Fallo al descifrar la clave AES con RSA. Verifica la clave privada y el padding.");
+            }
+            $aesKey = base64_decode($aesKeyBase64);
+
+            // Usar la clave AES para desencriptar los datos
+            $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $aesKey, OPENSSL_RAW_DATA, $iv);
+            if (!$decrypted) throw new \Exception("Fallo al descifrar la clave AES");
+
+            $data = json_decode($decrypted);
+            $objectArray = [];
+            foreach ($data as $item) {
+                //if (!in_array($item->name, $namesExclude)) $item->value = Desencriptar::sanitize_input($item->value);  // excluye de la sanitizacion las claves encryptadas ej: passwords
+                $objectArray[$item->name] = $item->value;
+            }
+            return (object) $objectArray;
+
+            //code...
+        } catch (\Throwable $e) {
+            info($e->getMessage());
+            //throw $th;
+            return null;
+        }
     }
 }
