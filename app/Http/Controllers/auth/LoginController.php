@@ -48,7 +48,7 @@ class LoginController extends Controller
                 $userId = auth()->user()->id;
                 $isActiveSession = DB::table('sessions')->where('user_id', $userId)->first();
                 if ($isActiveSession) {
-                    $this->utils->makeLog($this->modulo, $this->mensajes['sessionActiva'], $request->input());
+                    $this->utils->makeLog($this->modulo, $this->mensajes['sessionActiva'], $request);
                     auth()->logout();
                     session()->invalidate();
                     return redirect()->route('login')->with('is_active', true);
@@ -64,7 +64,7 @@ class LoginController extends Controller
             $jsonInput = (isset($jsonInput) ? $jsonInput :  json_encode($request,JSON_PRETTY_PRINT));
             $messageLog = "{$th->getMessage()} $message Linea: {$th->getLine()} Error: {$th->getCode()}";
             $messageError = "Error, no se pudo procesar los datos";
-            $this->utils->makeLog($this->modulo,$message, $jsonInput,null, $message);
+            $this->utils->makeLog($this->modulo,$message, $jsonInput,null, $messageLog);
         }
         $this->utils->makeLog($this->modulo, $messageLog, $jsonInput, null, "Credenciales de Usuario no validas");
         return redirect()

@@ -9,7 +9,7 @@
 
 5. Debo recordar que existe el metodo fieldsFiles en un trait de servicio que genera los campos de tabla solamente para grabar a partir de una variable(USERCONTROLLER)
 
-Las claves son 12345678 o 123 o 123456
+Las claves son 12345678 o 123 o 123456 o12345679
 
 05/10/25
 1. Siempre se llama el log de users_logs y si hay error se envia un parametro para que lo envie al archivo de storage/logs
@@ -26,3 +26,8 @@ Cuando se hace validate en el controlador la excepcion debe manejarse con       
                 ->withInput();
 
 Si se hace en el request la excepcion se puede quitar
+
+
+Generar claves de JSEncrypt
+openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
+openssl rsa -pubout -in private.pem -out public.pem

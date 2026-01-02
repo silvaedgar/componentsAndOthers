@@ -78,5 +78,5 @@ function encryptDataSalt(data) {
     return data;
 }
 
-window.dataEncrypt = dataEncrypt;
-window.encryptDataSalt = encryptDataSalt;
+globalThis.dataEncrypt = dataEncrypt;
+globalThis.encryptDataSalt = encryptDataSalt;
