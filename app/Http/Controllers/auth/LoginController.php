@@ -40,6 +40,7 @@ class LoginController extends Controller
     {
         try {
             $request = CryptoController::receiveEncrypted($request);
+            info('Request login: ' . json_encode($request));
             if ($request == null) throw new \Exception("Error Desencriptando");
             $jsonInput = $this->utils->hideFieldLog($request, ['password', '_token']);
             $this->utils->makeLog($this->modulo, $this->mensajes['accesoLogin'], $jsonInput);

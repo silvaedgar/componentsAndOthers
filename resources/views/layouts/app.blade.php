@@ -126,16 +126,18 @@
             }
         }, 1000);
 
-    var publicKey = null;
-    var urlKey = "{{ route('get.encrypt.key') }}";
-    fetch(urlKey)
-        .then(
-            res => res.json())
-        .then(data => {
-            publicKey = data.publicKey
-            //sessionStorage.setItem("tokenKey", derivedKey.token.toString());
-            //delete derivedKey.token
-        });
+    let keyPublic = sessionStorage.getItem('keySpkiBase64');
+    if (!keyPublic) {
+        var urlKey = "{{ route('get.encrypt.key') }}";
+        fetch(urlKey)
+            .then(
+                res => res.json())
+            .then(data => {
+                sessionStorage.setItem("keySpkiBase64", data.publicKeySpki);
+                console.log(data)
+            });
+    }
+
     </script>
     @stack('js')
 </body>

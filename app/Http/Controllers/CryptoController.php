@@ -92,65 +92,120 @@ class CryptoController extends Controller
         return response()->json(['keys' => $keys]);
     }
 
-    public function getCryptoSalt()
+    // Funcion que retorna la clave pública para el frontend
+    public function getPublicKey()
     {
-
         try {
             //code...
-            $frontendPublicKey = file_get_contents(base_path(env('RSA_PUBLIC_PATH')));
-
-
+            $frontendPublicKeySpki = file_get_contents(base_path(env('ECC_PUBLIC_SPKI_DER_PATH')));
             return response()->json([
-                'publicKey' => $frontendPublicKey
+                'publicKeySpki' =>  base64_encode($frontendPublicKeySpki)
             ]);
         } catch (\Throwable $th) {
             info($th->getMessage());
             return response()->json([
                 'publicKey' => "ERROR"
             ]);
-
-            //throw $th;
         }
         // Clave pública del frontend (puede venir de config o base de datos)
     }
 
+
+    public static function b64d(string $b64)
+    {
+        return base64_decode($b64, true);
+    }
+
+    public static function hkdf_sha256(string $ikm, int $length, string $info = '', string $salt = '')
+    {
+        // Usa hash_hmac internamente: implementación estándar de HKDF
+        $length = (int) $length;
+        $salt = $salt !== '' ? $salt : str_repeat("\0", 32); // si no hay salt, RFC sugiere zeros del tamaño del hash
+        $prk = hash_hmac('sha256', $ikm, $salt, true);
+        $t = '';
+        $okm = '';
+        for ($block = 1; strlen($okm) < $length; $block++) {
+            $t = hash_hmac('sha256', $t . $info . chr($block), $prk, true);
+            $okm .= $t;
+        }
+        return substr($okm, 0, $length);
+    }
+
+    public static function spkiDerToPem(string $der): string {
+        $b64 = chunk_split(base64_encode($der), 64, "\n");
+        return "-----BEGIN PUBLIC KEY-----\n" . $b64 . "-----END PUBLIC KEY-----\n";
+    }
+
+
     public static function receiveEncrypted(Request $request)
     {
         try {
-            $privateKey = file_get_contents(base_path(env('RSA_PRIVATE_PATH')));
-            $data = json_decode($request->input('data'), true);
+            // 1) Derivación ECDH
+            $data = json_decode($request->data);
+            INFO('Datos recibidos: ' . json_encode($data));
+            $serverPrivatePem = file_get_contents(base_path(env('ECC_PRIVATE_KEY_PATH')));
+            $serverPrivate = openssl_pkey_get_private($serverPrivatePem);
+            if (!$serverPrivate) throw new \Exception('Clave privada del servidor inválida');
 
-            $encryptedKey = base64_decode($data['encryptedKey']);
-            $iv = base64_decode($data['iv']);
-            $encrypted = base64_decode($data['encrypted']);
+            $clientSpkiDer = self::b64d($data->clientPublicKeySpki);
+            $clientSpkiPem = self::spkiDerToPem($clientSpkiDer);
 
-            // Descifrar la clave AES con la clave privada RSA
-            // openssl_private_decrypt($encryptedKey, $aesKey, $privateKey, OPENSSL_PKCS1_OAEP_PADDING);
+            $clientPublic = openssl_pkey_get_public($clientSpkiPem);
+            if (!$clientPublic) throw new \Exception('Clave pública del cliente inválida');
+            $sharedSecret = openssl_pkey_derive($clientPublic, $serverPrivate, 32);
+            if ($sharedSecret === false) throw new \Exception('Derivación ECDH fallida');
 
-            $success = openssl_private_decrypt($encryptedKey, $aesKeyBase64, $privateKey, OPENSSL_PKCS1_PADDING);
+            // 2) HKDF
+            $salt = self::b64d($data->salt);
+            $info = 'ETIQUETA CLAVE DERIVADA HKDF';
+            $sessionKey = self::hkdf_sha256($sharedSecret, 32, $info, $salt);
 
-            if (!$success) {
-                throw new \Exception("Fallo al descifrar la clave AES con RSA. Verifica la clave privada y el padding.");
+            // 3) Desencriptar clave de contenido
+            $wrapCt  = self::b64d($data->wrappedKey);
+            $wrapIv  = self::b64d($data->wrapIv);
+
+            // Separar ciphertext y tag (últimos 16 bytes)
+            $wrapBytes = $wrapCt;
+            $wrapTag   = substr($wrapBytes, -16);
+            $wrapCiphertext = substr($wrapBytes, 0, -16);
+
+            $payloadKey = openssl_decrypt($wrapCiphertext, 'aes-256-gcm', $sessionKey, OPENSSL_RAW_DATA, $wrapIv, $wrapTag);
+            if ($payloadKey === false || strlen($payloadKey) !== 32) {
+                throw new RuntimeException('Fallo al desencriptar la clave de contenido');
             }
-            $aesKey = base64_decode($aesKeyBase64);
 
-            // Usar la clave AES para desencriptar los datos
-            $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $aesKey, OPENSSL_RAW_DATA, $iv);
-            if (!$decrypted) throw new \Exception("Fallo al descifrar la clave AES");
+            // 4) Desencriptar payload
+            $ciphertext = self::b64d($data->ciphertext);
+            $iv         = self::b64d($data->iv);
+            $tag = substr($ciphertext, -16);
+            $ciphertext = substr($ciphertext, 0, -16);
+            $plaintext  = openssl_decrypt($ciphertext,
+                'aes-256-gcm',
+                $payloadKey,
+                OPENSSL_RAW_DATA,
+                $iv,
+                $tag
+            );
+            if ($plaintext === false) {
+                throw new RuntimeException('Fallo al desencriptar payload');
+            }
 
-            $data = json_decode($decrypted);
+            // 5) Procesa el plaintext (JSON u otro formato)
+            $data = json_decode($plaintext);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new RuntimeException('Plaintext no es JSON válido');
+            }
+            info('Datos desencriptados: ' . json_encode($data));
             $objectArray = [];
             foreach ($data as $item) {
-                //if (!in_array($item->name, $namesExclude)) $item->value = Desencriptar::sanitize_input($item->value);  // excluye de la sanitizacion las claves encryptadas ej: passwords
                 $objectArray[$item->name] = $item->value;
             }
             return (object) $objectArray;
+            //return response()->json(['ok' => true, 'data' => $data]);
 
-            //code...
         } catch (\Throwable $e) {
-            info($e->getMessage());
-            //throw $th;
-            return null;
+            info('Error al recibir datos cifrados: ' . $e->getMessage() . ' Linea: ' . $e->getLine());
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 400);
         }
     }
 }

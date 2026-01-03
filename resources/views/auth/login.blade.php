@@ -63,7 +63,7 @@
 
     })
 
-    document.addEventListener('submit', function(event) {
+    document.addEventListener('submit', async(event) => {
         event.preventDefault();
         const formElement = event.target;
         const formActionURL = formElement.action;
@@ -72,7 +72,8 @@
         const csrfToken = csrfTokenInput ? csrfTokenInput.value : '';
         const data = serializeFormToArray("form");
 
-        let encryptedForm = generateFormEncrypt(data,formActionURL,csrfToken)
+        let encryptedForm = await generateFormEncrypt(data,formActionURL,csrfToken)
+
         encryptedForm.submit();
     })
 

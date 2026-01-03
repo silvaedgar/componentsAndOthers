@@ -22,7 +22,7 @@ Route::get("/procesar-job",[JobController::class, 'index'])->name('job');
 
 Route::post("/signup", [LoginController::class, 'signup'])->name('signup');
 
-Route::get('crypt', [CryptoController::class, 'getCryptoSalt'])->name('get.encrypt.key');
+Route::get('crypt', [CryptoController::class, 'getPublicKey'])->name('get.encrypt.key');
 
 
 Route::middleware(IsLoggedMiddleware::class)->group(function() {
